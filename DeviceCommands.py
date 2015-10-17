@@ -23,6 +23,17 @@ class WaitButtonPress:
 	def __repr__(self):
 		return 'Wait Button {} Press'.format(self.device_name)
 
+class FakeGet:
+	def __init__(self, device_name):
+		self.device_name = device_name
+	def interp(self):
+		fake = devices.get_in(self.device_name)
+		if not isinstance(fake, devices.FakeInput):
+			devices.error('device {} is the wrong type'.format(fake))
+		return fake.get()
+	def __repr__(self):
+		return 'Fake {} Get'.format(self.device_name)
+
 def translate_led_set(node):
 	if 'Value' not in node or 'Device' not in node:
 		translate_error('Malformed led set {}', node)
@@ -33,4 +44,9 @@ def translate_wait_button_press(node):
 		translate_error('Malformed wait button press {}', node)
 	return WaitButtonPress(node['Device'])
 
-ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press}
+def translate_fake_get(node):
+	if 'Device' not in node:
+		translate_error('Malformed fake get {}', node)
+	return FakeGet(node['Device'])
+
+ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get}
