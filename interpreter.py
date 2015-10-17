@@ -1,4 +1,4 @@
-import json, time, devices
+import json, time, devices, requests
 import RPi.GPIO as GPIO
 from DeviceCommands import ExportedDeviceCommands
 
@@ -81,6 +81,18 @@ class Print:
 	def __repr__(self):
 		return "print({})".format(self.param.__repr__())
 
+class IFTTTMaker:
+	def __init__(self, url, data):
+		self.url = url
+		self.data = data
+	def interp(self):
+		data = {}
+		for key, value in self.data.iteritems():
+			data[key] = value.interp()
+		requests.post(self.url, json=data)
+	def __repr__(self):
+		return "IFTTTMaker Url: {} Data: {}".format(self.url, self.data)
+
 class PageDecl:
 	def __init__(self, name, nodes):
 		self.name = name
@@ -130,6 +142,14 @@ def translate_print(node):
 		translate_error('Malformed print {}', node)
 	return Print(translate_expression(node['Param']))
 
+def translate_ifttt_maker(node):
+	if 'Url' not in node or 'Data' not in node:
+		translate_error('Malformed IFTTTMaker {}', node)
+	data = {}
+	for k, v in node['Data'].iteritems():
+		data[k] = translate_expression(v)
+	return IFTTTMaker(node['Url'], data)
+
 def translate_page_decl(page):
 	if 'Name' not in page or 'Nodes' not in page:
 		translate_error('Malformed page {}', page)
@@ -146,6 +166,8 @@ def translate_nodes(nodes):
 			translated.append(translate_print(node))
 		elif node['Type'] == 'Repeat':
 			translated.append(translate_repeat(node))
+		elif node['Type'] == 'IFTTTMaker':
+			translated.append(translate_ifttt_maker(node))
 		elif node['Type'] in ExportedDeviceCommands:
 			translated.append(ExportedDeviceCommands[node['Type']](node))
 		else:
