@@ -5,10 +5,12 @@ from time import sleep
 
 devices.setup()
 
-devices.set_in('TempSensor',devices.TemperatureHumiditySensor(7))
+#devices.set_in('TempSensor',devices.TemperatureHumiditySensor(7))
 
-interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'Print', 'Param': {'Type': 'CurrentTemperature', 'Device': 'TempSensor'}}]}]})
-interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'Print', 'Param': {'Type': 'CurrentHumidity', 'Device': 'TempSensor'}}]}]})
+devices.set_out('RgbLed', devices.RgbLed(8, 10, 12, 100))
+
+#interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'Print', 'Param': {'Type': 'CurrentTemperature', 'Device': 'TempSensor'}}]}]})
+#interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'Print', 'Param': {'Type': 'CurrentHumidity', 'Device': 'TempSensor'}}]}]})
 
 """
 devices.set_out('RedLed', devices.Led(12, 120))
@@ -29,4 +31,7 @@ interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'LedSet', 'Device': 'RedLe
 
 #time.sleep(5)
 """
+
+interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'SetRgbLed', 'Device': 'RgbLed', 'R': {'Type': 'Constant', 'Value': 255}, 'G': {'Type': 'Constant', 'Value': 102}, 'B': {'Type': 'Constant', 'Value': 0}}, {'Type': 'Sleep', 'Param': {'Type': 'Constant', 'Value': 5}}]}]})
+
 devices.cleanup()
