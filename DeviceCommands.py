@@ -1,3 +1,5 @@
+import devices
+
 class LedSet:
 	def __init__(self, device_name, val):
 		self.device_name = device_name
@@ -21,4 +23,14 @@ class WaitButtonPress:
 	def __repr__(self):
 		return 'Wait Button {} Press'.format(self.device_name)
 
+def translate_led_set(node):
+	if 'Value' not in node or 'Device' not in node:
+		translate_error('Malformed led set {}', node)
+	return LedSet(node['Device'], translate_expression(node['Value']))
 
+def translate_wait_button_press(node):
+	if 'Device' not in node:
+		translate_error('Malformed wait button press {}', node)
+	return WaitButtonPress(node['Device'])
+
+ExportedDevices = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press}
