@@ -43,6 +43,7 @@ def error(msg):
 class InputDevice:
 	def __init__(self, channel, pull_up_down):
 		self.channel = channel
+		self.pull_up_down = pull_up_down
 		GPIO.setup(channel, GPIO.IN, pull_up_down=pull_up_down)
 	def input(self):
 		return GPIO.input(self.channel)
@@ -91,9 +92,9 @@ class OutputDevice:
 		return "Output Device Channel # {}".format(self.channel)
 
 class Led(OutputDevice):
-	def __init__(self, channel, on):
-		OutputDevice.__init__(self, channel, 1.0)
-		self.dc = 100 if on else 0
+	def __init__(self, channel, freq):
+		OutputDevice.__init__(self, channel, freq)
+		self.dc = 0
 		self.start(self.dc)
 	def set(self, on):
 		self.dc = 100 if on else 0
@@ -103,7 +104,7 @@ class Led(OutputDevice):
 
 class Button(InputDevice):
 	def __init__(self, channel, pull_up_down):
-		OutputDevice.__init__(self, channel, pull_up_down)
+		InputDevice.__init__(self, channel, pull_up_down)
 	def wait_for_press(self):
 		if self.pull_up_down == GPIO.PUD_UP:
 			self.wait_for_edge(GPIO.FALLING)

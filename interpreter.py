@@ -1,4 +1,5 @@
 import json, time, devices
+import RPi.GPIO as GPIO
 
 class If:
 	def __init__(self, cond, page_name):
@@ -51,7 +52,7 @@ class LedSet:
 		self.device_name = device_name
 		self.val = val
 	def interp(self):
-		led = devices.get_in(self.device_name)
+		led = devices.get_out(self.device_name)
 		if not isinstance(led, devices.Led):
 			devices.error('device {} is the wrong type'.format(led))
 		led.set(self.val.interp())
@@ -161,5 +162,6 @@ def interp(doc):
 	if 'Main' not in page_decls:
 		raise Exception('Malformed doc - no main {}'.format(json.dumps(doc)))
 	page_decls['Main'].interp()
+
 
 

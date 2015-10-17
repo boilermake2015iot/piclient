@@ -3,20 +3,22 @@ import time
 # board mode
 GPIO.setmode(GPIO.BOARD)
 """
-GPIO.setup(7, GPIO.OUT)
-p = GPIO.PWM(7, 0.5)
+GPIO.setup(8, GPIO.OUT)
+p = GPIO.PWM(8, 50)
 p.start(50)
 raw_input('Press return to stop:')
-p.stop()
+#p.stop()
+#GPIO.output(8, GPIO.HIGH)
+#time.sleep(10)
 """
+GPIO.setup(8, GPIO.IN)
 
-GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-try:
-	GPIO.wait_for_edge(7, GPIO.FALLING)
-	print "fell"
-except KeyboardInterrupt:
-	pass
+for i in xrange(0, 5):
+	if GPIO.input(8):
+		print "hi"
+	else:
+		print "lo"
+	raw_input('d')
 """
 p = GPIO.PWM(7, 50)
 p.start(0)
