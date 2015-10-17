@@ -33,4 +33,4 @@ def translate_wait_button_press(node):
 		translate_error('Malformed wait button press {}', node)
 	return WaitButtonPress(node['Device'])
 
-ExportedDevices = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press}
+ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press}

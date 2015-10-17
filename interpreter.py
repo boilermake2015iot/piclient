@@ -109,8 +109,8 @@ def translate_nodes(nodes):
 			translated.append(translate_if(node))
 		elif node['Type'] == 'Print':
 			translated.append(translate_print(node))
-		elif node['Type'] in ExportedDevices:
-			translated.append(ExportedDevices[node['Type']](node))
+		elif node['Type'] in ExportedDeviceCommands:
+			translated.append(ExportedDeviceCommands[node['Type']](node))
 		else:
 			translate_error('Malformed node {}', node)
 	return translated
