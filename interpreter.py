@@ -148,9 +148,9 @@ def translate_expression(node):
 		return Expression(node['Op'], translate_expression(node['Left']), translate_expression(node['Right']))
 	elif node['Type'] == 'Format':
 		return translate_format(node)
-	elif node['Type'] in deviceCommands.ExportedDeviceCommands:
+	elif node['Type'] in DeviceCommands.ExportedDeviceCommands:
 		if 'Device' in node and devices.is_in(node['Device']):
-			return deviceCommands.ExportedDeviceCommands[node['Type']](node)
+			return DeviceCommands.ExportedDeviceCommands[node['Type']](node)
 		else:
 			translate_error('Device command {} is not an expression'.format(node['Type']), node)
 	else:
@@ -210,8 +210,8 @@ def translate_nodes(nodes):
 			translated.append(translate_repeat(node))
 		elif node['Type'] == 'IFTTTMaker':
 			translated.append(translate_ifttt_maker(node))
-		elif node['Type'] in ExportedDeviceCommands:
-			translated.append(ExportedDeviceCommands[node['Type']](node))
+		elif node['Type'] in DeviceCommands.ExportedDeviceCommands:
+			translated.append(DeviceCommands.ExportedDeviceCommands[node['Type']](node))
 		else:
 			translate_error('Malformed node {}', node)
 	return translated

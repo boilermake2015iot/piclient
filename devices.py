@@ -46,7 +46,7 @@ def cleanup():
 		GPIO.cleanup()
 
 def error(msg):
-	raise Exception('Runtime Device Error: {}', msg)
+	raise Exception('Runtime Device Error: {}'.format(msg))
 
 class InputDevice:
 	def __init__(self, channel, pull_up_down):
@@ -180,4 +180,21 @@ class Servo(OutputDevice):
 			raise Exception('Increment {} makes angle {}, which must be between -90 and 90'.format(increment,self.angle+increment))
 		self.angle = self.angle + increment
 		self.change_duty_cycle(self.degreesToDC(degrees))
+
+class RgbLed(OutputDevice):
+	def __init__(self, r_channel, g_channel, b_channel, freq):
+		OutputDevice.__init__(self, r_channel, freq)
+		self.b = OutputDevice(b_channel, freq)
+		self.g = OutputDevice(g_channel, freq)
+		self.start(0)
+		self.g.start(0)
+		self.b.start(0)
+	def set_rgb(self, r, g, b):
+		if r < 0.0 or r > 255.0 or g < 0.0 or g > 255.0 or b < 0.0 or b > 255.0:
+			raise Exception('Invalid colors r: {} g: {} b: {}'.format(r, g, b))
+		def normalize(val):
+			return (val / 255.0) * 100
+		self.change_duty_cycle(normalize(r))
+		self.g.change_duty_cycle(normalize(g))
+		self.b.change_duty_cycle(normalize(b))
 

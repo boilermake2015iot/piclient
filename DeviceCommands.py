@@ -117,6 +117,20 @@ class CurrentHumidity:
 	def __repr__(self):
 		return 'Current Humidity using sensor {}'.format(self.device_name)
 
+class SetRgbLed:
+	def __init__(self, device_name, r, g, b):
+		self.device_name = device_name
+		self.r = r
+		self.g = g
+		self.b = b
+	def interp(self):
+		rgb_led = devices.get_out(self.device_name)
+		if not isinstance(rgb_led, devices.RgbLed):
+			devices.error('device {} is the wrong type'.format(self.device_name))
+		rgb_led.set_rgb(self.r.interp(), self.g.interp(), self.b.interp())
+	def __repr__(self):
+		return 'SetRgbLed {}'.format(self.device_name)
+
 def translate_current_temp(node):
 	if 'Device' not in node:
 		translate_error('Malformed current temperature {}',node)
@@ -168,4 +182,9 @@ def translate_fake_get(node):
 		translate_error('Malformed fake get {}', node)
 	return FakeGet(node['Device'])
 
-ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get, 'SetServoAngle': translate_set_servo_angle, 'StepServoAngle': translate_step_servo_angle, 'CurrentTemperature': translate_current_temp, 'CurrentHumidity':translate_current_humidity, 'GetButtonStatus': translate_get_button, 'GetLightStatus': translate_get_light, 'WaitLightHigh': translate_wait_light}
+def translate_set_rgb_led(node):
+	if 'Device' not in node or 'R' not in node or 'G' not in node or 'B' not in node:
+		translate_error('MAlformed set rgb led {}', node)
+	return SetRgbLed(node['Device'], interpreter.translate_expression(node['R']), interpreter.translate_expression(node['G']), interpreter.translate_expression(node['B']))
+
+ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get, 'SetServoAngle': translate_set_servo_angle, 'StepServoAngle': translate_step_servo_angle, 'CurrentTemperature': translate_current_temp, 'CurrentHumidity':translate_current_humidity, 'GetButtonStatus': translate_get_button, 'GetLightStatus': translate_get_light, 'WaitLightHigh': translate_wait_light, 'SetRgbLed': translate_set_rgb_led}
