@@ -93,6 +93,14 @@ class IFTTTMaker:
 	def __repr__(self):
 		return "IFTTTMaker Url: {} Data: {}".format(self.url, self.data)
 
+class Sleep:
+	def __init__(self, expression):
+		self.expression = expression
+	def interp(self):
+		time.sleep(self.expression.interp())
+	def __repr__(self):
+		return "sleep {}".format(self.expression)
+
 class PageDecl:
 	def __init__(self, name, nodes):
 		self.name = name
@@ -142,6 +150,11 @@ def translate_print(node):
 		translate_error('Malformed print {}', node)
 	return Print(translate_expression(node['Param']))
 
+def translate_sleep(node):
+	if 'Param' not in node:
+		translate_error('Malformed sleep {}', node)
+	return Sleep(translate_expression(node['Param']))
+
 def translate_ifttt_maker(node):
 	if 'Url' not in node or 'Data' not in node:
 		translate_error('Malformed IFTTTMaker {}', node)
@@ -164,6 +177,8 @@ def translate_nodes(nodes):
 			translated.append(translate_if(node))
 		elif node['Type'] == 'Print':
 			translated.append(translate_print(node))
+		elif node['Type'] == 'Sleep':
+			translated.append(translate_sleep(node))
 		elif node['Type'] == 'Repeat':
 			translated.append(translate_repeat(node))
 		elif node['Type'] == 'IFTTTMaker':
