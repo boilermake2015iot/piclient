@@ -56,7 +56,18 @@ class LedSet:
 			devices.error('device {} is the wrong type'.format(led))
 		led.set(self.val.interp())
 	def __repr__(self):
-		return "Led Set {}".format(self.val.__repr__())
+		return "Led {} Set {}".format(self.device_name, self.val.__repr__())
+
+class WaitButtonPress:
+	def __init__(self, device_name):
+		self.device_name = device_name
+	def interp(self):
+		button = devices.get_in(self.device_name)
+		if not isinstance(button, devices.Button):
+			devices.error('device {} is the wrong type'.format(button))
+		button.wait_for_press()
+	def __repr__(self):
+		return 'Wait Button {} Press'.format(self.device_name)
 
 class Print:
 	def __init__(self, param):
@@ -110,6 +121,11 @@ def translate_led_set(node):
 		translate_error('Malformed led set {}', node)
 	return LedSet(node['Device'], translate_expression(node['Value']))
 
+def translate_wait_button_press(node):
+	if 'Device' not in node:
+		translate_error('Malformed wait button press {}', node)
+	return WaitButtonPress(node['Device'])
+
 def translate_page_decl(page):
 	if 'Name' not in page or 'Nodes' not in page:
 		translate_error('Malformed page {}', page)
@@ -126,6 +142,8 @@ def translate_nodes(nodes):
 			translated.append(translate_print(node))
 		elif node['Type'] == 'LedSet':
 			translated.append(translate_led_set(node))
+		elif node['Type'] == 'WaitButtonPress':
+			translated.append(translate_wait_button_press(node))
 		else:
 			translate_error('Malformed node {}', node)
 	return translated
@@ -147,10 +165,13 @@ def interp(doc):
 devices.setup()
 
 devices.set_in('RedLed', devices.Led(7, 50))
+devices.set_out('Button', devices.Button(8, GPIO.PUD_UP))
 
 interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'Print', 'Param': {'Type': 'Constant', 'Value': 5}}]}]})
 
 interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'If', 'Condition': {'Type': 'Expression', 'Op': '>', 'Left': {'Type': 'Constant', 'Value': 5}, 'Right': {'Type': 'Constant', 'Value': 4}}, 'Page': 'Sub'}, {'Type': 'Print', 'Param': {'Type': 'Constant', 'Value': 'OK2'}}]}, {'Name': 'Sub', 'Nodes': [{'Type': 'Print', 'Param': {'Type': 'Constant', 'Value': 'OK'}}]}]})
+
+interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'WaitButtonPress', 'Device': 'Button'}]}]})
 
 interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'LedSet', 'Device': 'RedLed', 'Value': {'Type': 'Constant', 'Value': True}}]}]})
 

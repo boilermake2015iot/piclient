@@ -20,15 +20,21 @@ def set_in(device_name, device):
 	global i
 	if device_name in i:
 		error('input device {} already declared'.format(device_name))
+	if not isinstance(device, InputDevice):
+		error('{} not InputDevice'.format(device))
 	i[device_name] = device
 
 def set_out(device_name, device):
 	global o
 	if device_name in o:
 		error('output device {} already declared'.format(device_name))
+	if not isinstance(device, OutputDevice):
+		error('{} not OutputDevice'.format(device))
 	o[device_name] = device
 
 def cleanup():
+	for _,device in o.iteritems():
+		device.stop()
 	GPIO.cleanup()
 
 def error(msg):
@@ -94,4 +100,13 @@ class Led(OutputDevice):
 		self.change_duty_cycle(self.dc)
 	def get(self):
 		return True if self.dc == 100 else 0
+
+class Button(InputDevice):
+	def __init__(self, channel, pull_up_down):
+		OutputDevice.__init__(self, channel, pull_up_down)
+	def wait_for_press(self):
+		if self.pull_up_down == GPIO.PUD_UP:
+			self.wait_for_edge(GPIO.FALLING)
+		else:
+			self.wait_for_edge(GPIO.RISING)
 
