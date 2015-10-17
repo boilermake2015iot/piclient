@@ -142,6 +142,15 @@ class Led(OutputDevice):
 	def get(self):
 		return True if self.dc == 100 else 0
 
+class LightSensor(InputDevice):
+	def __init__(self, channel, pull_up_down):
+		InputDevice.__init__(self, channel, pull_up_down)
+	def wait_for_press(self):
+		if self.pull_up_down == GPIO.PUD_UP:
+			self.wait_for_edge(GPIO.FALLING)
+		else:
+			self.wait_for_edge(GPIO.RISING)
+
 class Button(InputDevice):
 	def __init__(self, channel, pull_up_down):
 		InputDevice.__init__(self, channel, pull_up_down)
