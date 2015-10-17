@@ -104,4 +104,22 @@ class Button(InputDevice):
 			self.wait_for_edge(GPIO.FALLING)
 		else:
 			self.wait_for_edge(GPIO.RISING)
+class Servo(OutputDevice):
+	def __init__(self, channel):
+		OutputDevice.__init__(self, channel, 50)
+		self.dc = 7.5
+		self.angle = 0
+		self.start(self.dc)
+	def degrees_to_DC(self, degrees):
+		return 7.5-(5*math.sin(math.radians(degrees)))
+	def set_angle(self, degrees):
+		if degrees < -90 or degrees > 90:
+			raise Exception('Angle {} must be between -90 and 90'.format(degrees))
+		self.angle = degrees
+		self.change_duty_cycle(self.degrees_to_DC(degrees))
+	def step_angle(self, increment):
+		if self.angle + increment < -90 or self.angle + increment > 90:
+			raise Exception('Increment {} makes angle {}, which must be between -90 and 90'.format(increment,self.angle+increment))
+		self.angle = self.angle + increment
+		self.change_duty_cycle(self.degreesToDC(degrees))
 
