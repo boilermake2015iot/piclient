@@ -2,17 +2,42 @@ import json, time, devices
 import RPi.GPIO as GPIO
 from DeviceCommands import *
 
+def get_page(page_name):
+	if page_name not in page_decls:
+		raise Exception('Runtime Error: page {} not declared'.format(page_name))
+	if not isinstance(page_decls[page_name], PageDecl):
+		raise Exception('Runtime Error: expected {} to be a page'.format(page_decls[page_name]))
+	return page_decls[page_name]
+
 class If:
 	def __init__(self, cond, page_name):
 		self.cond = cond
 		self.page_name = page_name
 	def interp(self):
-		if self.page_name not in page_decls:
-			raise Exception('Runtime Error: page {} not declared'.format(page_name))
-		if (self.cond.interp()):
-			page_decls[self.page_name].interp()
+			page = get_page(self.page_name)
+			if (self.cond.interp()):
+				page.interp()
 	def __repr__(self):
 		return "if {}: {} else: {}".format(self.cond.__repr__(), self.true_node.__repr__(), self.cond.false_node.__repr__())
+
+class Repeat:
+	def __init__(self, cond, page_name):
+		self.cond = cond
+		self.page_name = page_name
+	def interp(self):
+			page = get_page(self.page_name)
+			if isinstance(self.cond, Constant):
+				val = self.cond.interp()
+				if not isinstance(val, (int, long)):
+					raise Exception('Runtime Error: expected constant {} to be integeral in repeat for'.format(val))
+				if val < 0:
+					raise Exception('Runtime Error: expected constant {} to be >= 0 in repeat for'.format(val))
+				for i in xrange(0, val):
+					page.interp()
+			else:
+				while not self.cond.interp():
+					page.interp()
+				
 
 opToFn = {
 	'+': lambda lhs, rhs: lhs + rhs,
@@ -82,6 +107,11 @@ def translate_expression(node):
 		if 'Op' not in node or 'Left' not in node or 'Right' not in node:
 			translate_error('Malformed expression {}', node)
 		return Expression(node['Op'], translate_expression(node['Left']), translate_expression(node['Right']))
+	elif node['Type'] in ExportedDeviceCommands:
+		if 'Device' in node and devices.is_in(node['Device']):
+			return ExportedDeviceCommands[node['Type']](node)
+		else:
+			translate_error('Device command {} is not an expression'.format(node['Type']), node)
 	else:
 		translate_error('Invalid expression node {}', node)
 
@@ -89,6 +119,11 @@ def translate_if(node):
 	if 'Condition' not in node or 'Page' not in node:
 		translate_error('Malformed page {}', node)
 	return If(translate_expression(node['Condition']), node['Page'])
+
+def translate_repeat(node):
+	if 'Condition' not in node or 'Page' not in node:
+		translate_error('Malformed repeat {}', node)
+	return Repeat(translate_expression(node['Condition']), node['Page'])
 
 def translate_print(node):
 	if 'Param' not in node:
@@ -109,6 +144,8 @@ def translate_nodes(nodes):
 			translated.append(translate_if(node))
 		elif node['Type'] == 'Print':
 			translated.append(translate_print(node))
+		elif node['Type'] == 'Repeat':
+			translated.append(translate_repeat(node))
 		elif node['Type'] in ExportedDeviceCommands:
 			translated.append(ExportedDeviceCommands[node['Type']](node))
 		else:
@@ -128,6 +165,4 @@ def interp(doc):
 	if 'Main' not in page_decls:
 		raise Exception('Malformed doc - no main {}'.format(json.dumps(doc)))
 	page_decls['Main'].interp()
-
-
 

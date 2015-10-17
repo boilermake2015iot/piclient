@@ -6,6 +6,12 @@ o = {}
 def setup():
 	GPIO.setmode(GPIO.BOARD)
 
+def is_in(device_name):
+	return device_name in i
+
+def is_out(device_name):
+	return device_name in o
+
 def get_in(device_name):
 	if device_name not in i:
 		error("input device {} doesn't exist".format(device_name))
@@ -84,6 +90,15 @@ class OutputDevice:
 		self.started = False
 	def __repr__(self):
 		return "Output Device Channel # {}".format(self.channel)
+
+
+class FakeInput(InputDevice):
+	def __init__(self, channel, pull_up_down):
+		InputDevice.__init__(self, channel, pull_up_down)
+		self.count = 0
+	def get(self):
+		self.count += 1
+		return self.count
 
 class Led(OutputDevice):
 	def __init__(self, channel, freq):
