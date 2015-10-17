@@ -1,66 +1,4 @@
-import json
-import RPi.GPIO as GPIO
-import time
-class InputDevice:
-	def __init__(self, channel, pull_up_down):
-		self.channel = channel
-		GPIO.setup(channel, GPIO.IN, pull_up_down=pull_up_down)
-	def input(self):
-		return GPIO.input(self.channel)
-	def wait_for_edge(self, type):
-		return GPIO.wait_for_edge(self.channel, type)
-	def __repr__(self):
-		return "Input Device Channel # {}".format(self.channel)
-
-class OutputDevice:
-	def __init__(self, channel, freq):
-		self.channel = channel
-		GPIO.setup(channel, GPIO.OUT)
-		self.p = GPIO.PWM(channel, freq)
-		self.started = False
-		self.stopped = False
-	def start(self, dc):
-		if dc < 0.0 or dc > 100.0:
-			raise Exception('Bad dc {}'.format(dc))
-		if self.stopped:
-			raise Exception('Already stopped')
-		if self.started:
-			raise Exception('Already started')
-		self.p.start(dc)
-		self.started = True
-	def change_frequency(self, freq):
-		if not self.started:
-			raise Exception('Not started')
-		if self.stopped:
-			raise Exception('Already stopped')
-		self.p.ChangeFrequency(freq)
-	def change_duty_cycle(self, dc):
-		if not self.started:
-			raise Exception('Not started')
-		if self.stopped:
-			raise Exception('Already stopped')
-		self.p.ChangeDutyCycle(dc)
-	def stop(self):
-		if not self.started:
-			raise Exception('Not started')
-		if self.stopped:
-			raise Exception('Already stopped')
-		self.p.stop()
-		self.started = False
-		self.stopped = True
-	def __repr__(self):
-		return "Output Device Channel # {}".format(self.channel)
-
-class Led(OutputDevice):
-	def __init__(self, channel, on):
-		OutputDevice.__init__(self, channel, 1.0)
-		self.dc = 100 if on else 0
-		self.start(self.dc)
-	def set(self, on):
-		self.dc = 100 if on else 0
-		self.change_duty_cycle(self.dc)
-	def get(self):
-		return True if self.dc == 100 else 0
+import json, time, devices
 
 class If:
 	def __init__(self, cond, page_name):
@@ -113,11 +51,10 @@ class LedSet:
 		self.device_name = device_name
 		self.val = val
 	def interp(self):
-		if self.device_name not in input_devices:
-			raise Exception("Runtime Device Error: device {} doesn't exist".format(self.device_name))
-		if not isinstance(input_devices[self.device_name], Led):
-			raise Exception("Runtime Device Error: device {} is wrong time".format(input_devices[self.device_name]))
-		input_devices[self.device_name].set(self.val.interp())
+		led = devices.get_in(self.device_name)
+		if not isinstance(led, devices.Led):
+			devices.error('device {} is the wrong type'.format(led))
+		led.set(self.val.interp())
 	def __repr__(self):
 		return "Led Set {}".format(self.val.__repr__())
 
@@ -194,8 +131,6 @@ def translate_nodes(nodes):
 	return translated
 
 page_decls = {}
-output_devices = {}
-input_devices = {}
 
 def interp(doc):
 	global page_decls
@@ -209,9 +144,9 @@ def interp(doc):
 		raise Exception('Malformed doc - no main {}'.format(json.dumps(doc)))
 	page_decls['Main'].interp()
 
-GPIO.setmode(GPIO.BOARD)
+devices.setup()
 
-input_devices['RedLed'] = Led(7, 50)
+devices.set_in('RedLed', devices.Led(7, 50))
 
 interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'Print', 'Param': {'Type': 'Constant', 'Value': 5}}]}]})
 
@@ -219,6 +154,6 @@ interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'If', 'Condition': {'Type'
 
 interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'LedSet', 'Device': 'RedLed', 'Value': {'Type': 'Constant', 'Value': True}}]}]})
 
-time.sleep(10)
+time.sleep(1)
 
-GPIO.cleanup()
+devices.cleanup()
