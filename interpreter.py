@@ -2,22 +2,6 @@ import json
 
 page_decls = {}
 
-class Device:
-	def __init__(self, channel):
-		self.channel = channel
-
-class If:
-	def __init__(self, cond, page_name):
-		self.cond = cond
-		self.page_name = page_name
-	def interp(self):
-		if self.page_name not in page_decls:
-			raise 'Runtime Error: page {} not declared'.format(page_name)
-		if (self.cond.interp()):
-			page_decls[self.page_name].interp()
-	def __repr__(self):
-		return "if {}: {} else: {}".format(self.cond.__repr__(), self.true_node.__repr__(), self.cond.false_node.__repr__())
-
 opToFn = {
 	'+': lambda lhs, rhs: lhs + rhs,
 	'-': lambda lhs, rhs: lhs - rhs,
@@ -31,10 +15,26 @@ opToFn = {
 	'!=': lambda lhs, rhs: lhs != rhs
 }
 
+class GPIODevice:
+	def __init__(self, channel):
+		self.channel = channel
+
+class If:
+	def __init__(self, cond, page_name):
+		self.cond = cond
+		self.page_name = page_name
+	def interp(self):
+		if self.page_name not in page_decls:
+			raise Exception('Runtime Error: page {} not declared'.format(page_name))
+		if (self.cond.interp()):
+			page_decls[self.page_name].interp()
+	def __repr__(self):
+		return "if {}: {} else: {}".format(self.cond.__repr__(), self.true_node.__repr__(), self.cond.false_node.__repr__())
+
 class Expression:
 	def __init__(self, op, lhs, rhs):
 		if op not in opToFn:
-			raise "Unknown operator {}".format(op)
+			raise Exception("Unknown operator {}".format(op))
 		self.op_str = op
 		self.op = opToFn[op]
 		self.lhs = lhs
@@ -125,7 +125,7 @@ def interp(doc):
 		page_decl = translate_page_decl(page_doc)
 		page_decls[page_decl.name] = page_decl
 	if 'Main' not in page_decls:
-		raise ('Malformed doc - no main {}'.format(json.dumps(doc)))
+		raise Exception('Malformed doc - no main {}'.format(json.dumps(doc)))
 	page_decls['Main'].interp()
 
 interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'Print', 'Param': {'Type': 'Constant', 'Value': 5}}]}]})
