@@ -58,12 +58,9 @@ class OutputDevice:
 		GPIO.setup(channel, GPIO.OUT)
 		self.p = GPIO.PWM(channel, freq)
 		self.started = False
-		self.stopped = False
 	def start(self, dc):
 		if dc < 0.0 or dc > 100.0:
 			raise Exception('Bad dc {}'.format(dc))
-		if self.stopped:
-			raise Exception('Already stopped')
 		if self.started:
 			raise Exception('Already started')
 		self.p.start(dc)
@@ -71,23 +68,20 @@ class OutputDevice:
 	def change_frequency(self, freq):
 		if not self.started:
 			raise Exception('Not started')
-		if self.stopped:
-			raise Exception('Already stopped')
 		self.p.ChangeFrequency(freq)
+		self.freq = freq
 	def change_duty_cycle(self, dc):
+		if dc < 0.0 or dc > 100.0:
+			raise Exception('Bad dc {}'.format(dc))
 		if not self.started:
 			raise Exception('Not started')
-		if self.stopped:
-			raise Exception('Already stopped')
 		self.p.ChangeDutyCycle(dc)
+		self.dc = dc
 	def stop(self):
 		if not self.started:
 			raise Exception('Not started')
-		if self.stopped:
-			raise Exception('Already stopped')
 		self.p.stop()
 		self.started = False
-		self.stopped = True
 	def __repr__(self):
 		return "Output Device Channel # {}".format(self.channel)
 
