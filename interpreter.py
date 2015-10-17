@@ -97,9 +97,28 @@ class Sleep:
 	def __init__(self, expression):
 		self.expression = expression
 	def interp(self):
+		seconds = self.expression.interp()
+		if not isinstance(seconds, (int, long, float)):
+			raise Exception('sleep expects {} to be number'.format(seconds))
 		time.sleep(self.expression.interp())
 	def __repr__(self):
 		return "sleep {}".format(self.expression)
+
+class Format:
+	def __init__(self, text, args):
+		self.text = text
+		self.args = args
+		needed = self.text.count('{}')
+		actual = len(args)
+		if (needed != actual):
+			raise Exception('Need {} args but have {} actual'.format(needed, actual))
+	def interp(self):
+		text = self.text
+		for arg in self.args:
+			text = text.replace('{}', arg.interp(), 1)
+		return text
+	def __repr__():
+		return "Format {} {}".format(self.text, self.args)
 
 class PageDecl:
 	def __init__(self, name, nodes):
@@ -127,6 +146,8 @@ def translate_expression(node):
 		if 'Op' not in node or 'Left' not in node or 'Right' not in node:
 			translate_error('Malformed expression {}', node)
 		return Expression(node['Op'], translate_expression(node['Left']), translate_expression(node['Right']))
+	elif node['Type'] == 'Format':
+		return translate_format(node)
 	elif node['Type'] in ExportedDeviceCommands:
 		if 'Device' in node and devices.is_in(node['Device']):
 			return ExportedDeviceCommands[node['Type']](node)
@@ -154,6 +175,12 @@ def translate_sleep(node):
 	if 'Param' not in node:
 		translate_error('Malformed sleep {}', node)
 	return Sleep(translate_expression(node['Param']))
+
+def translate_format(node):
+	if 'Text' not in node and 'Params' not in node:
+		translate_error('Malformed format {}', node)
+	params = [translate_expression(param) for param in node['Params']]
+	return Format(node['Text'], params)
 
 def translate_ifttt_maker(node):
 	if 'Url' not in node or 'Data' not in node:
