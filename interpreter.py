@@ -101,7 +101,6 @@ def translate_constant(node):
 	return Constant(node['Value'])
 
 def translate_expression(node):
-	print 'Translate Expression'
 	if node['Type']== 'Constant':
 		return translate_constant(node)
 	elif node['Type'] == 'Expression':

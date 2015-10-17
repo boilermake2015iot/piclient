@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-
+import math
 i = {}
 o = {}
 
@@ -126,7 +126,9 @@ class Servo(OutputDevice):
 		self.angle = 0
 		self.start(self.dc)
 	def degrees_to_DC(self, degrees):
-		return 7.5-(5*math.sin(math.radians(degrees)))
+		num = 7.5-(5*math.sin(math.radians(degrees)))
+		print num
+		return num
 	def set_angle(self, degrees):
 		if degrees < -90 or degrees > 90:
 			raise Exception('Angle {} must be between -90 and 90'.format(degrees))
