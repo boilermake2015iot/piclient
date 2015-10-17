@@ -62,6 +62,38 @@ class FakeGet:
 	def __repr__(self):
 		return 'Fake {} Get'.format(self.device_name)
 
+class CurrentTemperature:
+	def __init__(self, device_name):
+		self.device_name = device_name
+	def interp(self):
+		sensor = devices.get_in(self.device_name)
+		if not isinstance(sensor, devices.TemperatureHumiditySensor):
+			devices.error('device {} is the wrong type'.format(sensor))
+		return sensor.getTemp()
+	def __repr__(self):
+		return 'Current Temperature using sensor {}'.format(self.device_name)
+
+class CurrentHumidity:
+	def __init__(self, device_name):
+		self.device_name = device_name
+	def interp(self):
+		sensor = devices.get_in(self.device_name)
+		if not isinstance(sensor, devices.TemperatureHumiditySensor):
+			devices.error('device {} is the wrong type'.format(sensor))
+		return sensor.getHumidity()
+	def __repr__(self):
+		return 'Current Humidity using sensor {}'.format(self.device_name)
+
+def translate_current_temp(node):
+	if 'Device' not in node:
+		translate_error('Malformed current temperature {}',node)
+	return CurrentTemperature(node['Device'])
+
+def translate_current_humidity(node):
+	if 'Device' not in node:
+		translate_error('Malformed current humidity {}',node)
+	return CurrentHumidity(node['Device'])
+
 def translate_led_set(node):
 	if 'Value' not in node or 'Device' not in node:
 		translate_error('Malformed led set {}', node)
@@ -87,4 +119,4 @@ def translate_fake_get(node):
 		translate_error('Malformed fake get {}', node)
 	return FakeGet(node['Device'])
 
-ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get, 'SetServoAngle': translate_set_servo_angle, 'StepServoAngle': translate_step_servo_angle}
+ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get, 'SetServoAngle': translate_set_servo_angle, 'StepServoAngle': translate_step_servo_angle, 'CurrentTemperature': translate_current_temp, 'CurrentHumidity':translate_current_humidity}
