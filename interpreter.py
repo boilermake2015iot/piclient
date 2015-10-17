@@ -1,6 +1,6 @@
 import json, time, devices, requests
 import RPi.GPIO as GPIO
-from DeviceCommands import ExportedDeviceCommands
+import DeviceCommands
 
 def get_page(page_name):
 	if page_name not in page_decls:
@@ -148,9 +148,9 @@ def translate_expression(node):
 		return Expression(node['Op'], translate_expression(node['Left']), translate_expression(node['Right']))
 	elif node['Type'] == 'Format':
 		return translate_format(node)
-	elif node['Type'] in ExportedDeviceCommands:
+	elif node['Type'] in deviceCommands.ExportedDeviceCommands:
 		if 'Device' in node and devices.is_in(node['Device']):
-			return ExportedDeviceCommands[node['Type']](node)
+			return deviceCommands.ExportedDeviceCommands[node['Type']](node)
 		else:
 			translate_error('Device command {} is not an expression'.format(node['Type']), node)
 	else:

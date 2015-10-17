@@ -168,4 +168,4 @@ def translate_fake_get(node):
 		translate_error('Malformed fake get {}', node)
 	return FakeGet(node['Device'])
 
-ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get, 'SetServoAngle': translate_set_servo_angle, 'StepServoAngle': translate_step_servo_angle, 'CurrentTemperature': translate_current_temp, 'CurrentHumidity':translate_current_humidity, 'GetButtonStatus': translate_get_button, 'GetLightStatus': translate_get_light, 'WaitLightHigh', translate_wait_light}
+ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get, 'SetServoAngle': translate_set_servo_angle, 'StepServoAngle': translate_step_servo_angle, 'CurrentTemperature': translate_current_temp, 'CurrentHumidity':translate_current_humidity, 'GetButtonStatus': translate_get_button, 'GetLightStatus': translate_get_light, 'WaitLightHigh': translate_wait_light}
