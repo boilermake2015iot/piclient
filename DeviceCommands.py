@@ -13,6 +13,17 @@ class LedSet:
 	def __repr__(self):
 		return "Led {} Set {}".format(self.device_name, self.val.__repr__())
 
+class GetButtonStatus:
+	def __init__(self, device_name):
+		self.device_name = device_name
+	def interp(self):
+		button = devices.get_in(self.device_name)
+		if not isinstance(button, devices.Button):
+			devices.error('device {} is the wrong type'.format(button))
+		return button.input()
+	def __repr__(self):
+		return 'Get value of button {}'.format(self.device_name)
+
 class WaitButtonPress:
 	def __init__(self, device_name):
 		self.device_name = device_name
@@ -21,6 +32,28 @@ class WaitButtonPress:
 		if not isinstance(button, devices.Button):
 			devices.error('device {} is the wrong type'.format(button))
 		button.wait_for_press()
+	def __repr__(self):
+		return 'Wait On Button {} Press'.format(self.device_name)
+
+class GetLightStatus:
+	def __init__(self, device_name):
+		self.device_name = device_name
+	def interp(self):
+		light = devices.get_in(self.device_name)
+		if not isinstance(light, devices.LightSensor):
+			devices.error('device {} is the wrong type'.format(light))
+		return light.input()
+	def __repr__(self):
+		return 'Get value of button {}'.format(self.device_name)
+
+class WaitLightLow:
+	def __init__(self, device_name):
+		self.device_name = device_name
+	def interp(self):
+		light = devices.get_in(self.device_name)
+		if not isinstance(light, devices.LightSensor):
+			devices.error('device {} is the wrong type'.format(button))
+		light.wait_for_press()
 	def __repr__(self):
 		return 'Wait On Button {} Press'.format(self.device_name)
 
@@ -99,10 +132,26 @@ def translate_led_set(node):
 		translate_error('Malformed led set {}', node)
 	return LedSet(node['Device'], interpreter.translate_expression(node['Value']))
 
+def translate_get_button(node):
+	if 'Device' not in node:
+		translate_error('Malformed get button status {}', node)
+	return GetButtonStatus(node['Device'])
+
 def translate_wait_button_press(node):
 	if 'Device' not in node:
 		translate_error('Malformed wait button press {}', node)
 	return WaitButtonPress(node['Device'])
+
+def translate_get_light(node):
+	if 'Device' not in node:
+		translate_error('Malformed get light status {}', node)
+	return GetLightStatus(node['Device'])
+
+def translate_wait_light(node):
+	if 'Device' not in node:
+		translate_error('Malformed wait light press {}', node)
+	return WaitLightHigh(node['Device'])
+
 def translate_set_servo_angle(node):
 	if 'Angle' not in node or 'Device' not in node:
 		translate_error('Malformed set servo angle {}', node)
@@ -119,4 +168,4 @@ def translate_fake_get(node):
 		translate_error('Malformed fake get {}', node)
 	return FakeGet(node['Device'])
 
-ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get, 'SetServoAngle': translate_set_servo_angle, 'StepServoAngle': translate_step_servo_angle, 'CurrentTemperature': translate_current_temp, 'CurrentHumidity':translate_current_humidity}
+ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get, 'SetServoAngle': translate_set_servo_angle, 'StepServoAngle': translate_step_servo_angle, 'CurrentTemperature': translate_current_temp, 'CurrentHumidity':translate_current_humidity, 'GetButtonStatus': translate_get_button, 'GetLightStatus': translate_get_light, 'WaitLightHigh', translate_wait_light}
