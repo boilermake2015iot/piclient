@@ -1,4 +1,5 @@
 import json, time, devices
+import RPi.GPIO as GPIO
 
 class If:
 	def __init__(self, cond, page_name):
@@ -51,7 +52,7 @@ class LedSet:
 		self.device_name = device_name
 		self.val = val
 	def interp(self):
-		led = devices.get_in(self.device_name)
+		led = devices.get_out(self.device_name)
 		if not isinstance(led, devices.Led):
 			devices.error('device {} is the wrong type'.format(led))
 		led.set(self.val.interp())
@@ -164,8 +165,8 @@ def interp(doc):
 
 devices.setup()
 
-devices.set_in('RedLed', devices.Led(7, 50))
-devices.set_out('Button', devices.Button(8, GPIO.PUD_UP))
+devices.set_out('RedLed', devices.Led(8, 50))
+devices.set_in('Button', devices.Button(7, GPIO.PUD_UP))
 
 interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'Print', 'Param': {'Type': 'Constant', 'Value': 5}}]}]})
 
@@ -175,6 +176,6 @@ interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'WaitButtonPress', 'Device
 
 interp({'Pages': [{'Name': 'Main', 'Nodes': [{'Type': 'LedSet', 'Device': 'RedLed', 'Value': {'Type': 'Constant', 'Value': True}}]}]})
 
-time.sleep(1)
+time.sleep(2)
 
 devices.cleanup()
