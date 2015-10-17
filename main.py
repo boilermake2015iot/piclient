@@ -3,11 +3,10 @@ import time
 # board mode
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(7, GPIO.OUT)
-"""
 p = GPIO.PWM(7, 0.5)
-p.start(1)
+p.start(50)
 raw_input('Press return to stop:')
-p.stop()"""
+p.stop()
 
 """
 p = GPIO.PWM(7, 50)

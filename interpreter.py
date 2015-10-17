@@ -1,4 +1,5 @@
 import json
+import RPi.GPIO as GPIO
 
 page_decls = {}
 
@@ -15,9 +16,22 @@ opToFn = {
 	'!=': lambda lhs, rhs: lhs != rhs
 }
 
-class GPIODevice:
-	def __init__(self, channel):
+class InputDevice:
+	def __init__(self, channel, pull_up_down):
 		self.channel = channel
+		GPIO.setup(channel, GPIO.IN, pull_up_down=pull_up_down)
+	def input(self):
+		return GPIO.input(self.channel)
+	def wait_for_edge(self, type):
+		return GPIO.wait_for_edge(self.channel, type)
+
+class OutputDevice:
+	def __init__(self, channel, freq):
+		self.channel = channel
+		GPIO.setup(channel, GPIO.OUT)
+	
+
+
 
 class If:
 	def __init__(self, cond, page_name):
