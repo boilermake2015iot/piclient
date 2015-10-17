@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import math
+import Adafruit_DHT
 i = {}
 o = {}
 
@@ -41,7 +42,8 @@ def set_out(device_name, device):
 def cleanup():
 	for _,device in o.iteritems():
 		device.stop()
-	GPIO.cleanup()
+	if len(o) > 0:
+		GPIO.cleanup()
 
 def error(msg):
 	raise Exception('Runtime Device Error: {}', msg)
@@ -100,6 +102,35 @@ class FakeInput(InputDevice):
 		self.count += 1
 		return self.count
 
+class TemperatureHumiditySensor(InputDevice):
+	def __init__(self, channel):
+		if channel is not 7:
+			raise Exception('Temperature Sensor must be on gpio pin 7, pwm 4')
+		#InputDevice.__init__(self,4,GPIO.PUD_DOWN)
+		self.channel = 4
+		self.LastTemp = None
+		self.LastHumidity = None
+	def getTemp(self):
+		if self.LastTemp is None:
+			humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT11, self.channel)
+			if humidity is not None and temperature is not None:
+				#print 'Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(temperature, humidity)
+				self.LastTemp = temperature
+				self.LastHumidity = humidity
+			else:
+				print 'Failed to get reading. Try again!'
+		return self.LastTemp
+	def getHumidity(self):	
+		if self.LastHumidity is None:
+			humidity, temperature = Adafruit_DHT.read_retry(sensor, pin)
+			if humidity is not None and temperature is not None:
+				#print 'Temp={0:0.1f}*  Humidity={1:0.1f}%'.format(temperature, humidity)
+				self.LastTemp = temperature
+				self.LastHumidity = humidity
+			else:
+				print 'Failed to get reading. Try again!'
+		return self.LastHumidity
+
 class Led(OutputDevice):
 	def __init__(self, channel, freq):
 		OutputDevice.__init__(self, channel, freq)
@@ -126,8 +157,9 @@ class Servo(OutputDevice):
 		self.angle = 0
 		self.start(self.dc)
 	def degrees_to_DC(self, degrees):
-		num = 7.5-(5*math.sin(math.radians(degrees)))
-		print num
+		#num = 7.5-(5*math.sin(math.radians(degrees)))
+		num = 7.5-5.0*(float(degrees)/90.0)
+		print 'theta={} dc={}'.format(degrees,num)
 		return num
 	def set_angle(self, degrees):
 		if degrees < -90 or degrees > 90:
