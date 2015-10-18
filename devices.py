@@ -40,8 +40,12 @@ def set_out(device_name, device):
 	o[device_name] = device
 
 def cleanup():
+	global o
+	global i
 	for _,device in o.iteritems():
 		device.stop()
+	o = {}
+	i = {}
 	GPIO.cleanup()
 
 def error(msg):
