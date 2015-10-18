@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import math
+import time
 import Adafruit_DHT
 i = {}
 o = {}
@@ -40,8 +41,12 @@ def set_out(device_name, device):
 	o[device_name] = device
 
 def cleanup():
+	global o
+	global i
 	for _,device in o.iteritems():
 		device.stop()
+	o = {}
+	i = {}
 	GPIO.cleanup()
 
 def error(msg):
@@ -63,6 +68,7 @@ class OutputDevice:
 	def __init__(self, channel, freq):
 		self.channel = channel
 		GPIO.setup(channel, GPIO.OUT)
+		self.freq = freq
 		self.p = GPIO.PWM(channel, freq)
 		self.started = False
 	def start(self, dc):
@@ -87,6 +93,7 @@ class OutputDevice:
 	def stop(self):
 		if not self.started:
 			raise Exception('Not started')
+		self.p.ChangeDutyCycle(0)
 		self.p.stop()
 		self.started = False
 	def __repr__(self):
@@ -140,6 +147,9 @@ class Led(OutputDevice):
 		self.change_duty_cycle(self.dc)
 	def get(self):
 		return True if self.dc == 100 else 0
+	def stop(self):
+		self.change_duty_cycle(0)
+		OutputDevice.stop(self)
 
 class LightSensor(InputDevice):
 	def __init__(self, channel, pull_up_down):
@@ -161,24 +171,25 @@ class Button(InputDevice):
 class Servo(OutputDevice):
 	def __init__(self, channel):
 		OutputDevice.__init__(self, channel, 50)
-		self.dc = 7.5
+		self.dc = 0
 		self.angle = 0
 		self.start(self.dc)
 	def degrees_to_DC(self, degrees):
 		#num = 7.5-(5*math.sin(math.radians(degrees)))
 		num = 7.5-5.0*(float(degrees)/90.0)
-		print 'theta={} dc={}'.format(degrees,num)
 		return num
 	def set_angle(self, degrees):
 		if degrees < -90 or degrees > 90:
 			raise Exception('Angle {} must be between -90 and 90'.format(degrees))
 		self.angle = degrees
 		self.change_duty_cycle(self.degrees_to_DC(degrees))
+		time.sleep(0.5)
 	def step_angle(self, increment):
 		if self.angle + increment < -90 or self.angle + increment > 90:
 			raise Exception('Increment {} makes angle {}, which must be between -90 and 90'.format(increment,self.angle+increment))
 		self.angle = self.angle + increment
-		self.change_duty_cycle(self.degreesToDC(degrees))
+		self.change_duty_cycle(self.degrees_to_DC(self.angle))
+		time.sleep(0.5)
 
 class RgbLed(OutputDevice):
 	def __init__(self, r_channel, g_channel, b_channel, freq):
@@ -196,4 +207,8 @@ class RgbLed(OutputDevice):
 		self.change_duty_cycle(normalize(r))
 		self.g.change_duty_cycle(normalize(g))
 		self.b.change_duty_cycle(normalize(b))
+	def stop(self):
+		self.g.stop()
+		self.b.stop()
+		OutputDevice.stop(self)
 

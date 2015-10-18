@@ -23,12 +23,21 @@ class LedBlink:
 		led = devices.get_out(self.device_name)
 		if not isinstance(led, devices.Led):
 			devices.error('device {} is the wrong type'.format(led))
-			led.set(0)
-		for i in range(1,self.number_of_blinks.interp()):
+		dc = led.dc
+		freq = led.freq
+		#led.change_frequency(0.5)
+		led.change_frequency(1.0 / self.blink_interval.interp())
+		led.change_duty_cycle(50)
+		time.sleep(self.blink_interval.interp() * self.number_of_blinks.interp())
+		led.change_duty_cycle(dc)
+		led.change_frequency(freq)
+		"""
+		for i in range(0,self.number_of_blinks.interp()):
 			led.set(1)
 			time.sleep(0.25)
 			led.set(0)
 			time.sleep(self.blink_interval.interp())
+		"""
 	def __repr__(self):
 		return "Led {} Blink".format(self.device_name)
 
@@ -81,7 +90,6 @@ class SetServoAngle:
 		self.device_name = device_name
 		self.val = val
 	def interp(self):
-		print "Servo angle set"
 		servo = devices.get_out(self.device_name)
 		if not isinstance(servo, devices.Servo):
 			devices.error('Device {} is the wrong type'.format(servo))
@@ -97,7 +105,7 @@ class StepServoAngle:
 		servo = devices.get_out(self.device_name)
 		if not isinstance(servo, devices.Servo):
 			devices.error('Device {} is the wrong type'.format(servo))
-		servo.set_angle(self.val.interp())
+		servo.step_angle(self.val.interp())
 	def __repr__(self):
 		return 'Servo {}\'s Angle stepped {}'.format(self.device_name,self.val.__repr__())
 

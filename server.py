@@ -35,10 +35,4 @@ def hello():
 	return json.dumps({'success': 'program ran to completion'}), 200
 
 if __name__ == "__main__":
-	devices.setup()
-	devices.set_in('Button',devices.Button(16, GPIO.PUD_UP))
-	devices.set_in('TempSensor',devices.TemperatureHumiditySensor(7))
-	devices.set_out('Servo', devices.Servo(12))
-	devices.set_out('RgbLed', devices.RgbLed(11, 13, 15, 100))
-	devices.set_out('BlueLed', devices.Led(3,120))
 	app.run(host='0.0.0.0', port=80,debug=True)

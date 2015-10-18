@@ -222,6 +222,12 @@ def translate_nodes(nodes):
 page_decls = {}
 
 def interp(doc):
+	devices.setup()
+	devices.set_in('Button',devices.Button(16, GPIO.PUD_UP))
+	devices.set_in('TempSensor',devices.TemperatureHumiditySensor(7))
+	devices.set_out('Servo', devices.Servo(12))
+	devices.set_out('RgbLed', devices.RgbLed(11, 13, 15, 100))
+	devices.set_out('BlueLed', devices.Led(19,120))
 	global page_decls
 	page_decls = {}
 	if 'Pages' not in doc:
@@ -231,5 +237,7 @@ def interp(doc):
 		page_decls[page_decl.name] = page_decl
 	if 'Main' not in page_decls:
 		raise Exception('Malformed doc - no main {}'.format(json.dumps(doc)))
+	
 	page_decls['Main'].interp()
 	
+	devices.cleanup()
