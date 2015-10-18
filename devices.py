@@ -42,8 +42,7 @@ def set_out(device_name, device):
 def cleanup():
 	for _,device in o.iteritems():
 		device.stop()
-	if len(o) > 0:
-		GPIO.cleanup()
+	GPIO.cleanup()
 
 def error(msg):
 	raise Exception('Runtime Device Error: {}'.format(msg))
