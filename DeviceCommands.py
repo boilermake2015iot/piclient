@@ -1,5 +1,6 @@
 import devices
 import interpreter
+import time
 
 class LedSet:
 	def __init__(self, device_name, val):
@@ -12,6 +13,24 @@ class LedSet:
 		led.set(self.val.interp())
 	def __repr__(self):
 		return "Led {} Set {}".format(self.device_name, self.val.__repr__())
+
+class LedBlink:
+	def __init__(self, device_name, blink_interval, number_of_blinks):
+		self.device_name = device_name
+		self.blink_interval = blink_interval
+		self.number_of_blinks = number_of_blinks
+	def interp(self):
+		led = devices.get_out(self.device_name)
+		if not isinstance(led, devices.Led):
+			devices.error('device {} is the wrong type'.format(led))
+			led.set(0)
+		for i in range(1,self.number_of_blinks.interp()):
+			led.set(1)
+			time.sleep(0.25)
+			led.set(0)
+			time.sleep(self.blink_interval.interp())
+	def __repr__(self):
+		return "Led {} Blink".format(self.device_name)
 
 class GetButtonStatus:
 	def __init__(self, device_name):
@@ -141,6 +160,11 @@ def translate_current_humidity(node):
 		translate_error('Malformed current humidity {}',node)
 	return CurrentHumidity(node['Device'])
 
+def translate_led_blink(node):
+	if 'BlinkInterval' not in node or 'NumberOfBlinks' not in node or 'Device' not in node:
+		translate_error('Malformed led blink {}', node)
+	return LedBlink(node['Device'], interpreter.translate_expression(node['BlinkInterval']),interpreter.translate_expression(node['NumberOfBlinks']))
+
 def translate_led_set(node):
 	if 'Value' not in node or 'Device' not in node:
 		translate_error('Malformed led set {}', node)
@@ -176,7 +200,6 @@ def translate_step_servo_angle(node):
 		translate_error('Malformed step servo angle {}', node)
 	return StepServoAngle(node['Device'], interpreter.translate_expression(node['Increment']))
 
-
 def translate_fake_get(node):
 	if 'Device' not in node:
 		translate_error('Malformed fake get {}', node)
@@ -187,4 +210,4 @@ def translate_set_rgb_led(node):
 		translate_error('MAlformed set rgb led {}', node)
 	return SetRgbLed(node['Device'], interpreter.translate_expression(node['R']), interpreter.translate_expression(node['G']), interpreter.translate_expression(node['B']))
 
-ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get, 'SetServoAngle': translate_set_servo_angle, 'StepServoAngle': translate_step_servo_angle, 'CurrentTemperature': translate_current_temp, 'CurrentHumidity':translate_current_humidity, 'GetButtonStatus': translate_get_button, 'GetLightStatus': translate_get_light, 'WaitLightHigh': translate_wait_light, 'SetRgbLed': translate_set_rgb_led}
+ExportedDeviceCommands = {'LedSet': translate_led_set, 'WaitButtonPress': translate_wait_button_press, 'FakeGet': translate_fake_get, 'SetServoAngle': translate_set_servo_angle, 'StepServoAngle': translate_step_servo_angle, 'CurrentTemperature': translate_current_temp, 'CurrentHumidity':translate_current_humidity, 'GetButtonStatus': translate_get_button, 'GetLightStatus': translate_get_light, 'WaitLightHigh': translate_wait_light, 'SetRgbLed': translate_set_rgb_led, 'LedBlink': translate_led_blink}
