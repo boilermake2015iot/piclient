@@ -228,16 +228,18 @@ def interp(doc):
 	devices.set_out('Servo', devices.Servo(12))
 	devices.set_out('RgbLed', devices.RgbLed(11, 13, 15, 100))
 	devices.set_out('BlueLed', devices.Led(19,120))
-	global page_decls
-	page_decls = {}
-	if 'Pages' not in doc:
-		raise Exception("Malformed doc {}".format(json.dumps(doc)))
-	for page_doc in doc['Pages']:
-		page_decl = translate_page_decl(page_doc)
-		page_decls[page_decl.name] = page_decl
-	if 'Main' not in page_decls:
-		raise Exception('Malformed doc - no main {}'.format(json.dumps(doc)))
-	
-	page_decls['Main'].interp()
-	
-	devices.cleanup()
+	try:
+		global page_decls
+		page_decls = {}
+		if 'Pages' not in doc:
+			raise Exception("Malformed doc {}".format(json.dumps(doc)))
+		for page_doc in doc['Pages']:
+			page_decl = translate_page_decl(page_doc)
+			page_decls[page_decl.name] = page_decl
+		if 'Main' not in page_decls:
+			raise Exception('Malformed doc - no main {}'.format(json.dumps(doc)))
+		page_decls['Main'].interp()
+		devices.cleanup()
+	except Exception as e:
+		devices.cleanup()
+		raise e

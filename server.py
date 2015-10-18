@@ -25,6 +25,7 @@ def hello():
 			hasMain = True
 	if not hasMain:
 		return json.dumps({'error': 'no main page'}), 400
+	print program
 	try:
 		interpreter.interp(program)
 	except:

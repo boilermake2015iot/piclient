@@ -183,7 +183,7 @@ class Servo(OutputDevice):
 			raise Exception('Angle {} must be between -90 and 90'.format(degrees))
 		self.angle = degrees
 		self.change_duty_cycle(self.degrees_to_DC(degrees))
-		time.sleep(0.5)
+		time.sleep(1)
 	def step_angle(self, increment):
 		if self.angle + increment < -90 or self.angle + increment > 90:
 			raise Exception('Increment {} makes angle {}, which must be between -90 and 90'.format(increment,self.angle+increment))
