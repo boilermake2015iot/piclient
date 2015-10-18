@@ -83,13 +83,16 @@ class Print:
 
 class IFTTTMaker:
 	def __init__(self, url, data):
-		self.url = url
+		self.url = url.replace('\\','')
 		self.data = data
 	def interp(self):
 		data = {}
 		for key, value in self.data.iteritems():
 			data[key] = value.interp()
-		requests.post(self.url, json=data)
+		if len(data) != 0:
+			requests.post(self.url, json=data)
+		else:
+			requests.post(self.url)
 	def __repr__(self):
 		return "IFTTTMaker Url: {} Data: {}".format(self.url, self.data)
 
