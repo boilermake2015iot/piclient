@@ -223,11 +223,13 @@ page_decls = {}
 
 def interp(doc):
 	devices.setup()
-	devices.set_in('Button',devices.Button(16, GPIO.PUD_UP))
+	devices.set_in('Button',devices.Button(16, GPIO.PUD_DOWN))
 	devices.set_in('TempSensor',devices.TemperatureHumiditySensor(7))
 	devices.set_out('Servo', devices.Servo(12))
 	devices.set_out('RgbLed', devices.RgbLed(11, 13, 15, 100))
 	devices.set_out('BlueLed', devices.Led(19,120))
+	devices.set_out('GreenLed', devices.Led(18,120))
+	devices.set_out('RedLed', devices.Led(22, 120))
 	try:
 		global page_decls
 		page_decls = {}

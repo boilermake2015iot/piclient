@@ -11,14 +11,11 @@ raw_input('Press return to stop:')
 #GPIO.output(8, GPIO.HIGH)
 #time.sleep(10)
 """
-GPIO.setup(8, GPIO.IN)
+GPIO.setup(13, GPIO.OUT)
 
-for i in xrange(0, 5):
-	if GPIO.input(8):
-		print "hi"
-	else:
-		print "lo"
-	raw_input('d')
+GPIO.output(13, True)
+time.sleep(2)
+
 """
 p = GPIO.PWM(7, 50)
 p.start(0)

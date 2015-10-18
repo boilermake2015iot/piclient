@@ -129,7 +129,6 @@ class CurrentTemperature:
 		sensor = devices.get_in(self.device_name)
 		if not isinstance(sensor, devices.TemperatureHumiditySensor):
 			devices.error('device {} is the wrong type'.format(sensor))
-		print sensor.getTemp()
 		return sensor.getTemp()
 	def __repr__(self):
 		return 'Current Temperature using sensor {}'.format(self.device_name)
