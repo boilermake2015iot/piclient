@@ -1,6 +1,8 @@
-import json, time, devices, requests
-import RPi.GPIO as GPIO
-import DeviceCommands
+import json, time,requests
+from sense_hat import SenseHat
+#import RPi.GPIO as GPIO
+#import DeviceCommands
+#import devices
 
 def get_page(page_name):
 	if page_name not in page_decls:
@@ -108,20 +110,34 @@ class Sleep:
 		return "sleep {}".format(self.expression)
 
 class Format:
-	def __init__(self, text, args):
+	def __init__(self, text, params):
 		self.text = text
-		self.args = args
+		self.params = params
 		needed = self.text.count('{}')
-		actual = len(args)
+		actual = len(params)
 		if (needed != actual):
-			raise Exception('Need {} args but have {} actual'.format(needed, actual))
+			raise Exception('Need {} params but have {} actual'.format(needed, actual))
 	def interp(self):
 		text = self.text
-		for arg in self.args:
-			text = text.replace('{}', arg.interp(), 1)
+		for arg in self.params:
+                        value = arg.interp()
+                        if isinstance(value, float):
+                            value = '{0:.2f}'.format(value)
+			text = text.replace('{}', str(value), 1)
 		return text
 	def __repr__():
-		return "Format {} {}".format(self.text, self.args)
+		return "Format {} {}".format(self.text, self.params)
+
+class SenseHatInvoker:
+    def __init__(self, command, params):
+        self.command = command
+        self.params = params
+    def interp(self):
+        params = [param.interp() for param in self.params]
+        return getattr(sense, self.command)(*params)
+    def __repr__():
+        return "sense.{}({})".format(self.command, self.params)
+
 
 class PageDecl:
 	def __init__(self, name, nodes):
@@ -151,12 +167,16 @@ def translate_expression(node):
 		return Expression(node['Op'], translate_expression(node['Left']), translate_expression(node['Right']))
 	elif node['Type'] == 'Format':
 		return translate_format(node)
-	elif node['Type'] in DeviceCommands.ExportedDeviceCommands:
-		if 'Device' in node and devices.is_in(node['Device']):
-			return DeviceCommands.ExportedDeviceCommands[node['Type']](node)
-		else:
-			translate_error('Device command {} is not an expression'.format(node['Type']), node)
-	else:
+        elif node['Type'] == 'SenseHat':
+                return translate_sensehat(node)
+                '''
+                elif node['Type'] in DeviceCommands.ExportedDeviceCommands:
+                        if 'Device' in node and devices.is_in(node['Device']):
+                                return DeviceCommands.ExportedDeviceCommands[node['Type']](node)
+                        else:
+                                translate_error('Device command {} is not an expression'.format(node['Type']), node)
+                '''
+        else:
 		translate_error('Invalid expression node {}', node)
 
 def translate_if(node):
@@ -184,6 +204,12 @@ def translate_format(node):
 		translate_error('Malformed format {}', node)
 	params = [translate_expression(param) for param in node['Params']]
 	return Format(node['Text'], params)
+
+def translate_sensehat(node):
+        if 'Command' not in node and 'Params' not in node:
+            translate_error('Malformed format {}', node)
+        params = [translate_expression(param) for param in node['Params']]
+        return SenseHatInvoker(node['Command'], params)
 
 def translate_ifttt_maker(node):
 	if 'Url' not in node or 'Data' not in node:
@@ -213,26 +239,34 @@ def translate_nodes(nodes):
 			translated.append(translate_repeat(node))
 		elif node['Type'] == 'IFTTTMaker':
 			translated.append(translate_ifttt_maker(node))
-		elif node['Type'] in DeviceCommands.ExportedDeviceCommands:
-			translated.append(DeviceCommands.ExportedDeviceCommands[node['Type']](node))
+                elif node['Type'] == 'SenseHat':
+                        translated.append(translate_sensehat(node))
+                        '''
+                        elif node['Type'] in DeviceCommands.ExportedDeviceCommands:
+                                translated.append(DeviceCommands.ExportedDeviceCommands[node['Type']](node))
+                        '''
 		else:
 			translate_error('Malformed node {}', node)
 	return translated
 
 page_decls = {}
-
+sense = None
 def interp(doc):
+        ''' boilermake
 	devices.setup()
-	devices.set_in('Button',devices.Button(16, GPIO.PUD_DOWN))
+        devices.set_in('Button',devices.Button(16, GPIO.PUD_DOWN))
 	devices.set_in('TempSensor',devices.TemperatureHumiditySensor(7))
 	devices.set_out('Servo', devices.Servo(12))
 	devices.set_out('RgbLed', devices.RgbLed(11, 13, 15, 100))
 	devices.set_out('BlueLed', devices.Led(19,120))
 	devices.set_out('GreenLed', devices.Led(18,120))
 	devices.set_out('RedLed', devices.Led(22, 120))
+        '''
 	try:
 		global page_decls
 		page_decls = {}
+                global sense
+                sense = SenseHat()
 		if 'Pages' not in doc:
 			raise Exception("Malformed doc {}".format(json.dumps(doc)))
 		for page_doc in doc['Pages']:
@@ -241,7 +275,10 @@ def interp(doc):
 		if 'Main' not in page_decls:
 			raise Exception('Malformed doc - no main {}'.format(json.dumps(doc)))
 		page_decls['Main'].interp()
-		devices.cleanup()
+		sense.clear()
+                #devices.cleanup()
 	except Exception as e:
-		devices.cleanup()
+                if sense:
+                    sense.clear()
+		#devices.cleanup()
 		raise e
