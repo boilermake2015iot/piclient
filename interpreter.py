@@ -136,8 +136,17 @@ class SenseHatInvoker:
         params = [param.interp() for param in self.params]
         return getattr(sense, self.command)(*params)
     def __repr__():
-        return "sense.{}({})".format(self.command, self.params)
+        return "sense.{}({})".format(self.command, self.params.__repr__())
 
+class GetKey:
+    def __init__(self, key, d):
+        self.key = key
+        self.d = d
+    def interp(self):
+        d = self.d.interp()
+        return d[self.key]
+    def __repr__(self):
+        return "{}[{}]".format(self.d.__repr__(), self.key.__repr__())
 
 class PageDecl:
 	def __init__(self, name, nodes):
@@ -169,6 +178,8 @@ def translate_expression(node):
 		return translate_format(node)
         elif node['Type'] == 'SenseHat':
                 return translate_sensehat(node)
+        elif node['Type'] == 'GetKey':
+                return translate_getkey(node)
                 '''
                 elif node['Type'] in DeviceCommands.ExportedDeviceCommands:
                         if 'Device' in node and devices.is_in(node['Device']):
@@ -210,6 +221,11 @@ def translate_sensehat(node):
             translate_error('Malformed format {}', node)
         params = [translate_expression(param) for param in node['Params']]
         return SenseHatInvoker(node['Command'], params)
+
+def translate_getkey(node):
+        if 'Key' not in node and 'Dict' not in node:
+            translate_error('Malformed format {}', node)
+        return GetKey(node['Key'], translate_expression(node['Dict']))
 
 def translate_ifttt_maker(node):
 	if 'Url' not in node or 'Data' not in node:

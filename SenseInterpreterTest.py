@@ -14,7 +14,7 @@ interp({
                             'Command': 'show_message',
                             'Params': [ {
                                 'Type': 'Constant',
-                                'Value': 'Hello'
+                                'Value': 'H'
                             } ] 
                         }, {
                             'Type': 'If',
@@ -53,6 +53,42 @@ interp({
                                 'Type': 'Constant',
                                 'Value': [255, 0, 0]
                             } ]
+                        }, {
+                        'Type': 'SenseHat',
+                        'Command': 'show_message',
+                        'Params': [ {
+                                'Type': 'Format',
+                                'Text': 'pitch {} roll {} yaw {} north {}',
+                                'Params': [ {
+                                        'Type': 'GetKey',
+                                        'Key': 'pitch',
+                                        'Dict': {
+                                            'Type': 'SenseHat',
+                                            'Command': 'get_accelerometer',
+                                            'Params': []
+                                        }
+                                    }, {
+                                        'Type': 'GetKey',
+                                        'Key': 'roll',
+                                        'Dict': {
+                                            'Type': 'SenseHat',
+                                            'Command': 'get_gyroscope',
+                                            'Params': []
+                                        }
+                                    }, {
+                                        'Type': 'GetKey',
+                                        'Key': 'yaw',
+                                        'Dict': {
+                                            'Type': 'SenseHat',
+                                            'Command': 'get_gyroscope',
+                                            'Params': []
+                                        }
+                                    }, {
+                                        'Type': 'SenseHat',
+                                        'Command': 'get_compass',
+                                        'Params': []
+                                    } ]
+                                } ]
                         } ]
             } ]
 })
